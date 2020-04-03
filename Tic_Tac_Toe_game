@@ -1,0 +1,103 @@
+wall = "   |   |   \n"
+ttt_board = {1:" ",2:" ",3:" ",4:" ",5:" ",6:" ",7:" ",8:" ",9:" "}
+
+splitter = "-----------\n"
+
+def clean_board():
+    print(wall*3 + splitter + wall*3 + splitter + wall*3)
+    
+def whose_turn():
+    count = 0
+    for x in ttt_board.values():
+        if x == " ":
+            count += 1
+    if count%2 == 0:
+        return 2
+    else:
+        return 1
+
+def find_winner(): 
+    win_combo = {
+        1:[[4,7], [5,9], [2,3]],
+        5:[[4,6],[8,2],[3,7]],
+        9:[[6,3],[8,7]]
+    }
+
+    for x in win_combo.keys():
+        if ttt_board[x] == " ":
+            continue
+        else:
+            for y in win_combo[x]:
+                if ttt_board[y[0]] == ttt_board[x] and ttt_board[y[1]] == ttt_board[x]:
+                    return True
+    return False
+
+def play_game():
+    while True:
+        player1 = (input("Player 1: Do you want to be X or O?")).upper()
+        if player1 == "X":
+            player2 = "O"
+            break
+        else:
+            player2 = "X"
+            break
+    
+    print("Player 1 will go first.\n")
+    
+    while True:
+        response = (input("Are you ready to play? Enter Yes or No.")).upper()
+        if response == "NO":
+            return
+        elif response == "YES":
+            break
+    
+    count = 0
+    clean_board()
+    
+    while True:
+        num = whose_turn()
+        player = "Player {}".format(num)
+
+        t_input = int(input("{}, Choose your next position: (1-9)".format(player)))
+        if t_input not in range(1,10):
+            pass
+        elif ttt_board[t_input] == " ":
+            if int(num) == 1:
+                ttt_board[t_input] = player1
+            else:
+                ttt_board[t_input] = player2
+            count += 1
+        else:
+            print("Please select a blank spot. Position {} is taken by {}".format(t_input, ttt_board[t_input]))
+        t_top = " {} | {} | {} \n".format(ttt_board[7],ttt_board[8],ttt_board[9])
+        t_mid = " {} | {} | {} \n".format(ttt_board[4],ttt_board[5],ttt_board[6])
+        t_btm = " {} | {} | {} \n".format(ttt_board[1],ttt_board[2],ttt_board[3])
+
+        print(wall + t_top + wall + splitter)
+        print(wall + t_mid + wall + splitter)
+        print(wall + t_btm + wall)        
+
+        if count >= 3:
+            done = find_winner()
+            if done:
+                print("Congratulations! Player {} have won the game!".format(num))
+                break
+            if count == 9:
+                print("Tie!")
+                break
+
+def main():
+    print("Welcome to Tic Tac Toe!\n")
+
+    while True:
+        play_game()
+        for x in range(1,10):
+            ttt_board[x] = " "
+            
+        retry = input("Do you want to play again? Enter Yes or No:")
+        
+        if retry.lower() == "no":
+            break
+
+if __name__ == '__main__':
+    main()
