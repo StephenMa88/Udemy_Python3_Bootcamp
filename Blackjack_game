@@ -1,0 +1,202 @@
+import random
+
+# Create a class for the player
+class Player():
+    
+    def __init__(self, name, balance = 0):
+        self.name = name
+        self.balance = int(balance) 
+    
+    def name(self):
+        return self.name
+    
+    def balance(self):
+        return self.balance
+    
+    def update_balance(self, new_balance):
+        self.balance = new_balance
+    
+    def bet(self):
+        # check if bet if acceptable or not.
+        
+        while True:
+            try:
+                bet = int(input("Place your bet: "))
+                if bet >= 1 and bet <= self.balance:
+                    break
+                else:
+                    print("Sorry insuffient funds, Please try again under [{}]".format(self.balance))
+            except:
+                print("Please input a valid number less than your balance [{}]".format(self.balance))
+            
+        return bet
+        
+class Game():
+    
+    def __init__(self):
+        #initialize game board
+        pass
+        
+    def clean_up(self):
+        #clean up all values
+        self.status = ""
+        self.used_cards = []
+        self.deck = []
+
+    def generate_deck(self):
+        self.cards = ["A","K","Q","J","10","9","8","7","6","5","4","3","2"]
+        self.deck = []
+        n = 1
+        for x in self.cards:
+            for y in range(4):
+                self.deck.append({n:x})
+                n += 1
+        return print("Let's Begin!!")
+    
+    def draw_card(self):
+        while True:
+            card_index = random.randrange(0,52)
+            if card_index not in self.used_cards:
+                self.used_cards.append(card_index)
+                break
+        return self.deck[card_index][card_index+1]
+
+    def calc_sum(self, cards):
+        sum = 0
+        for x in cards:
+            if x == " ":
+                continue
+            if x == "A":
+                num = 11
+            elif x in ["K","Q","J"]:
+                num = 10
+            else:
+                num = int(x)
+            sum += num
+        while True:
+            for y in range(0, len(cards)):
+                if cards[y] == "A" and sum > 21:
+                    sum -= 10
+            break
+
+        return sum
+    
+    def print_cur_board(self, pturn, p_cards, d_cards, balance):
+        status = " "
+        p_sum = self.calc_sum(p_cards)
+        d_sum = " "
+        
+        if p_sum == 21:
+            status = "BlackJack, You win!"
+        elif p_sum > 21:
+            status = "Bust! You Lose."
+        if not pturn:
+            d_sum = self.calc_sum(d_cards)
+            if d_sum > 21:
+                status = "Dealer Bust, You win!"
+            elif d_sum > p_sum:
+                status = "Dealer wins, You Lose."
+        
+        print("|-----------------------------------------")
+        print(f"|            DEALER: Points [{str(d_sum)}]")
+        print("|")
+        if pturn:
+            print(f"| [{d_cards[0]}] [ ] [{d_cards[2]}] [{d_cards[3]}]\
+        [{d_cards[4]}] [{d_cards[5]}] [{d_cards[6]}] [{d_cards[7]}]")
+        else:
+            print(f"| [{d_cards[0]}] [{d_cards[1]}] [{d_cards[2]}] [{d_cards[3]}]\
+        [{d_cards[4]}] [{d_cards[5]}] [{d_cards[6]}] [{d_cards[7]}]")
+        print(f"|         Balance: {str(balance)}     {status}")
+        print(f"| [{p_cards[0]}] [{p_cards[1]}] [{p_cards[2]}] [{p_cards[3]}]\
+        [{p_cards[4]}] [{p_cards[5]}] [{p_cards[6]}] [{p_cards[7]}]")
+        print("|")
+        print(f"|            Player A: Points [{str(p_sum)}]")
+        print("|-----------------------------------------")
+        
+        return p_sum, d_sum, status
+        
+    def player_hit_or_stay(self):
+        response = ""
+        while response != "hit" and response != "stay":
+            response = ((input("Hit or Stay: ")).replace(" ", "")).lower()
+        return response
+        
+def main():
+    # start the game, all players name is PlayerA and start balance is 1000
+    playerA = Player("PlayerA", 1000)
+    
+    gameOn = Game()
+    print ("Welcome to Blackjack!")
+
+    play_game = True
+    # Place a bet
+    while play_game:
+        
+        pturn = True
+        p_cards = [" "," "," "," "," "," "," "," "]
+        d_cards = [" "," "," "," "," "," "," "," "]
+        
+        gameOn.clean_up()
+        gameOn.print_cur_board(pturn, p_cards, d_cards, playerA.balance)
+        gameOn.generate_deck()
+        bet = playerA.bet()
+        
+        p_cards[0] = gameOn.draw_card()
+        p_cards[1] = gameOn.draw_card()
+        d_cards[0] = gameOn.draw_card()
+        d_cards[1] = gameOn.draw_card()
+        print("You placed a bet of [{}]".format(str(bet)))
+        
+        phit_index = 2
+        while True:
+            p_sum, d_sum, status = gameOn.print_cur_board(pturn, p_cards, d_cards, playerA.balance)
+            if status != " ":
+                break
+            if status == " " and not pturn:
+                # now it is dealer turn. since it is not pturn and status hasn't changed.
+                dhit_index = 2
+                while True:
+                    d_cards[dhit_index] = gameOn.draw_card()
+                    p_sum, d_sum, status = gameOn.print_cur_board(pturn, p_cards, d_cards, playerA.balance)
+                    if status != " ":
+                        break
+                    else:
+                        dhit_index += 1
+                break
+            if pturn:
+                response = gameOn.player_hit_or_stay()
+                if response == "hit":
+                    p_cards[phit_index] = gameOn.draw_card()
+                    phit_index += 1
+                else:
+                    #end player turn due to stay
+                    pturn = False
+
+        #update the balance,x2 bet for winning, print new balance 
+        if "Lose" in status:
+            new_balance = playerA.balance - bet
+        else:
+            new_balance = playerA.balance + ( 2 * bet)
+        
+        if new_balance == 0:
+            print("You are out of money :( We look forward to your next visit!")
+            break
+
+        print("\n###############################")
+        print("New Balance [{}]".format(new_balance))
+        playerA.update_balance(new_balance)
+
+        while True:
+            try:
+                response = ((input("Would you like to play again?(Y/N) ")).replace(" ", "")).lower()
+                if response == "y" or response == "n":
+                    break
+            except:
+                print("Please input Y or N.".format(self.balance))
+        # ask if want to play again.
+        
+        if response == "n":
+            break
+
+if __name__ == '__main__':
+    main()
